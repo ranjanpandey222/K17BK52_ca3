@@ -1,0 +1,90 @@
+{
+  "identifier" : "4F7C2B1E",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+
+  ],
+  "settings" : {
+    "_failTransactionsEnabled" : false,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+
+    ]
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "21500001",
+      "localizations" : [
+
+      ],
+      "name" : "Ebb Premium",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "59.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6500000001",
+          "introductoryOffer" : {
+            "internalID" : "6500000011",
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P1W"
+          },
+          "localizations" : [
+            {
+              "description" : "Patterns, treatment insights and doctor reports.",
+              "displayName" : "Ebb Premium Yearly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "ebb.premium.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Ebb Premium Yearly",
+          "subscriptionGroupID" : "21500001",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "9.99",
+          "familyShareable" : false,
+          "groupNumber" : 2,
+          "internalID" : "6500000002",
+          "introductoryOffer" : {
+            "internalID" : "6500000012",
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P1W"
+          },
+          "localizations" : [
+            {
+              "description" : "Patterns, treatment insights and doctor reports.",
+              "displayName" : "Ebb Premium Monthly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "ebb.premium.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Ebb Premium Monthly",
+          "subscriptionGroupID" : "21500001",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}
