@@ -1,4 +1,14 @@
 {
+  "appPolicies" : {
+    "eula" : "",
+    "policies" : [
+      {
+        "locale" : "en_US",
+        "policyText" : "",
+        "policyURL" : ""
+      }
+    ]
+  },
   "identifier" : "4F7C2B1E",
   "nonRenewingSubscriptions" : [
 
@@ -35,6 +45,7 @@
           "internalID" : "6500000001",
           "introductoryOffer" : {
             "internalID" : "6500000011",
+            "numberOfPeriods" : 1,
             "paymentMode" : "free",
             "subscriptionPeriod" : "P1W"
           },
@@ -49,7 +60,10 @@
           "recurringSubscriptionPeriod" : "P1Y",
           "referenceName" : "Ebb Premium Yearly",
           "subscriptionGroupID" : "21500001",
-          "type" : "RecurringSubscription"
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
         },
         {
           "adHocOffers" : [
@@ -64,6 +78,7 @@
           "internalID" : "6500000002",
           "introductoryOffer" : {
             "internalID" : "6500000012",
+            "numberOfPeriods" : 1,
             "paymentMode" : "free",
             "subscriptionPeriod" : "P1W"
           },
@@ -78,13 +93,16 @@
           "recurringSubscriptionPeriod" : "P1M",
           "referenceName" : "Ebb Premium Monthly",
           "subscriptionGroupID" : "21500001",
-          "type" : "RecurringSubscription"
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
         }
       ]
     }
   ],
   "version" : {
-    "major" : 3,
+    "major" : 4,
     "minor" : 0
   }
 }

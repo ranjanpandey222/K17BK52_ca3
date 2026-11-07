@@ -65,7 +65,30 @@ targets:
     scheme:
       storeKitConfiguration: StoreKit/Ebb.storekit
       testTargets:
+        - EbbTests
         - EbbUITests
+
+  EbbTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: EbbTests
+      - path: StoreKit/Ebb.storekit
+        buildPhase: resources
+    dependencies:
+      - target: Ebb
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ebbapp.ebb.tests
+        GENERATE_INFOPLIST_FILE: YES
+        TARGETED_DEVICE_FAMILY: "1"
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Ebb.app/Ebb"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+        CODE_SIGN_STYLE: Automatic
+        "CODE_SIGN_STYLE[sdk=iphonesimulator*]": Manual
+        "CODE_SIGN_IDENTITY[sdk=iphonesimulator*]": "-"
+        "DEVELOPMENT_TEAM[sdk=iphonesimulator*]": ""
 
   EbbUITests:
     type: bundle.ui-testing
