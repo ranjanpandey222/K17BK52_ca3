@@ -93,11 +93,17 @@ final class StoreTests: XCTestCase {
         await store.refreshEntitlements()
         XCTAssertTrue(store.isPremium)
 
+        // Simulate a user who cancels (turns off auto-renew) and lets it run out.
+        try session.disableAutoRenewForTransaction(identifier: UInt(transaction.id))
         try session.expireSubscription(productIdentifier: StoreService.monthlyID)
-        await store.refreshEntitlements()
         #if DEBUG
         store.debugUnlocked = false
         #endif
+        for _ in 0..<10 {
+            await store.refreshEntitlements()
+            if !store.isPremium { break }
+            try await Task.sleep(nanoseconds: 500_000_000)
+        }
         XCTAssertFalse(store.isPremium, "Expired subscription should lock the app")
     }
 }
