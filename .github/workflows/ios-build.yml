@@ -89,6 +89,13 @@ jobs:
           echo "Using simulator $UDID"
           xcrun simctl list devices | grep "$UDID" || true
           echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+      - name: Prepare simulator (clean status bar for App Store screenshots)
+        run: |
+          UDID="${{ steps.sim.outputs.udid }}"
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b
+          xcrun simctl status_bar "$UDID" override --time "9:41" --dataNetwork wifi --wifiMode active --wifiBars 3 \
+            --cellularMode active --cellularBars 4 --batteryState charged --batteryLevel 100 || true
       - name: Run UI tests
         run: |
           set -o pipefail

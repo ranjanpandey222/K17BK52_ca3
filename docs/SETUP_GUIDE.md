@@ -2,7 +2,7 @@
 
 You'll go from nothing to Ebb running in the iPhone Simulator in about 30–45 minutes. Most of that time is waiting for Xcode to download.
 
-You don't need a paid Apple Developer account for any of this. You'll need one later to put Ebb on your own iPhone and in the App Store (see [LAUNCH_CHECKLIST.md](LAUNCH_CHECKLIST.md)).
+You don't need a paid Apple Developer account for any of this. Simulator builds are set up to sign themselves. You'll need one later to put Ebb on your own iPhone and in the App Store (see [LAUNCH_CHECKLIST.md](LAUNCH_CHECKLIST.md)).
 
 ---
 
@@ -47,9 +47,21 @@ You don't need a paid Apple Developer account for any of this. You'll need one l
 - **Subscriptions** work in a local test mode: no real money and no Apple account needed. On the paywall, pick a plan and tap the button. The test purchase goes through instantly.
   - To reset test purchases: in Xcode, menu **Debug → StoreKit → Manage Transactions…** and delete them.
   - In this test build there's also a **"Skip (debug)"** button on the paywall and a **Debug: unlock** switch in Settings. These only exist in test builds, never in the App Store version.
-- **Lots of data quickly:** patterns need at least 7 check-ins. In the **History** tab, tap past days to add check-ins for them.
+  - **If the paywall says "Subscription Unavailable":** Apple has a known bug in StoreKit testing on iOS 26.3–26.5 simulators. Just tap **Skip (debug)**, or choose an iPhone simulator running iOS 26.2 or 26.6+. The real purchase flow is checked automatically on every change (see "Automatic checks" below).
+- **See a full app instantly:** go to **More → Settings → Subscription → "Debug: load 10 weeks of sample data"**. You'll get realistic check-ins, an HRT patch and patterns to explore (test builds only).
+- **Or build up data by hand:** patterns need at least 7 check-ins. In the **History** tab, tap past days to add check-ins for them.
 - **Apple Health** works in the Simulator, but it has no sleep or Apple Watch data, so those cards show "–". That's expected.
 - **Face ID lock:** in the Simulator use menu **Features → Face ID → Enrolled**, then **Matching Face** when asked.
+
+## Automatic checks (already set up)
+
+Every time code changes on GitHub, Apple's tools on a GitHub Mac automatically:
+- build the app (test and App Store versions, simulator and real iPhone),
+- run 33 logic tests (pattern finder, report, stage),
+- run the app in an iPhone simulator: onboarding → paywall → first check-in, then every main screen with sample data, taking screenshots,
+- run the subscription tests: products, prices, free trial, purchase unlocks, expiry relocks.
+
+See them under the repository's **Actions** tab. Green ✓ = all good.
 
 ## If something goes wrong
 
