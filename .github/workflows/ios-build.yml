@@ -23,7 +23,7 @@ jobs:
         run: swift test
 
   build-app:
-    name: Build iOS app (simulator)
+    name: Build iOS app
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v5
@@ -33,28 +33,98 @@ jobs:
         run: brew install xcodegen
       - name: Generate Xcode project
         run: xcodegen generate
-      - name: Build
+      # Signed locally for the simulator, exactly like a Mac without an Apple Developer account.
+      - name: Build (Debug, simulator)
         run: |
           set -o pipefail
           xcodebuild build \
-            -project Ebb.xcodeproj \
-            -scheme Ebb \
-            -configuration Debug \
+            -project Ebb.xcodeproj -scheme Ebb -configuration Debug \
             -destination 'generic/platform=iOS Simulator' \
-            CODE_SIGNING_ALLOWED=NO \
-            2>&1 | tee build.log | grep -E "error:|warning: .*Ebb/|BUILD (SUCCEEDED|FAILED)" || true
+            2>&1 | tee build.log | grep -E "error:|warning: .*/Ebb/|BUILD (SUCCEEDED|FAILED)" || true
           grep -q "BUILD SUCCEEDED" build.log
-      - name: Show errors
-        if: failure()
-        run: grep -E "error:" build.log | sort -u | head -100 || true
-      - name: Release build check
+      - name: Build (Release, simulator)
         run: |
           set -o pipefail
           xcodebuild build \
-            -project Ebb.xcodeproj \
-            -scheme Ebb \
-            -configuration Release \
+            -project Ebb.xcodeproj -scheme Ebb -configuration Release \
             -destination 'generic/platform=iOS Simulator' \
-            CODE_SIGNING_ALLOWED=NO \
             2>&1 | tee release.log | grep -E "error:|BUILD (SUCCEEDED|FAILED)" || true
           grep -q "BUILD SUCCEEDED" release.log
+      - name: Build (Release, device, unsigned)
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -project Ebb.xcodeproj -scheme Ebb -configuration Release \
+            -destination 'generic/platform=iOS' \
+            CODE_SIGNING_ALLOWED=NO \
+            2>&1 | tee device.log | grep -E "error:|BUILD (SUCCEEDED|FAILED)" || true
+          grep -q "BUILD SUCCEEDED" device.log
+      - name: Show errors
+        if: failure()
+        run: cat build.log release.log device.log 2>/dev/null | grep -E "error:" | sort -u | head -100 || true
+
+  ui-tests:
+    name: UI tests & screenshots
+    runs-on: macos-latest
+    needs: build-app
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate Xcode project
+        run: xcodegen generate
+      - name: Pick simulator
+        id: sim
+        run: |
+          UDID=$(xcrun simctl list devices available -j | python3 -c '
+          import sys, json
+          devices = json.load(sys.stdin)["devices"]
+          runtimes = sorted([r for r in devices if "iOS" in r], reverse=True)
+          for want in ("Pro Max", "Plus", ""):
+              for runtime in runtimes:
+                  for d in devices[runtime]:
+                      if d["name"].startswith("iPhone") and want in d["name"]:
+                          print(d["udid"]); sys.exit()
+          ')
+          echo "Using simulator $UDID"
+          xcrun simctl list devices | grep "$UDID" || true
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+      - name: Run UI tests
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project Ebb.xcodeproj -scheme Ebb \
+            -destination "id=${{ steps.sim.outputs.udid }}" \
+            -resultBundlePath ui.xcresult \
+            2>&1 | tee ui.log | grep -E "error:|Test Case .*(passed|failed)|XCTAssert|TEST (SUCCEEDED|FAILED)" || true
+          grep -q "TEST SUCCEEDED" ui.log
+      - name: Export screenshots
+        if: always()
+        run: |
+          mkdir -p raw screenshots
+          xcrun xcresulttool export attachments --path ui.xcresult --output-path raw || true
+          python3 - <<'PY'
+          import json, os, shutil
+          manifest = "raw/manifest.json"
+          if os.path.exists(manifest):
+              for test in json.load(open(manifest)):
+                  for a in test.get("attachments", []):
+                      src = os.path.join("raw", a["exportedFileName"])
+                      name = a.get("suggestedHumanReadableName") or a["exportedFileName"]
+                      if os.path.exists(src):
+                          shutil.copy(src, os.path.join("screenshots", name))
+          print(sorted(os.listdir("screenshots")))
+          PY
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ebb-screenshots
+          path: screenshots
+          if-no-files-found: warn
+      - name: Upload test log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-test-log
+          path: ui.log

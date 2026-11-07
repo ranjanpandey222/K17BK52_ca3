@@ -205,6 +205,7 @@ struct SettingsView: View {
             Button("Restore purchases") { Task { await store.restorePurchases() } }
             #if DEBUG
             Toggle("Debug: unlock without buying", isOn: $store.debugUnlocked)
+            Button("Debug: load 10 weeks of sample data") { DemoData.seed(into: modelContext) }
             #endif
         }
     }

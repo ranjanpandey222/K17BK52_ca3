@@ -11,6 +11,8 @@ enum NotificationService {
     /// Asks for permission. Returns true if notifications are allowed.
     @discardableResult
     static func requestPermission() async -> Bool {
+        // UI tests can't answer the system prompt.
+        if AppEnvironment.isUITesting { return false }
         do {
             return try await center.requestAuthorization(options: [.alert, .sound, .badge])
         } catch {
