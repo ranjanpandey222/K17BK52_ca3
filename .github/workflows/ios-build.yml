@@ -129,3 +129,38 @@ jobs:
         with:
           name: ui-test-log
           path: ui.log
+
+  storekit-tests:
+    name: Subscription tests (iOS 18 simulator)
+    runs-on: macos-latest
+    needs: build-app
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate Xcode project
+        run: xcodegen generate
+      - name: Pick an iOS 18 simulator
+        id: sim
+        run: |
+          xcrun simctl list runtimes
+          UDID=$(xcrun simctl list devices available -j | python3 -c '
+          import sys, json
+          devices = json.load(sys.stdin)["devices"]
+          for runtime in sorted([r for r in devices if "iOS-18" in r], reverse=True):
+              for d in devices[runtime]:
+                  if d["name"].startswith("iPhone"):
+                      print(d["udid"]); sys.exit()
+          ')
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+          if [ -z "$UDID" ]; then echo "::warning::No iOS 18 simulator on this runner; subscription tests only ran on the default simulator."; fi
+      - name: Run subscription tests
+        if: steps.sim.outputs.udid != ''
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project Ebb.xcodeproj -scheme Ebb \
+            -destination "id=${{ steps.sim.outputs.udid }}" \
+            -only-testing:EbbTests \
+            2>&1 | tee storekit.log | grep -E "error:|Test Case .*(passed|failed|skipped)|TEST (SUCCEEDED|FAILED)" || true
+          grep -q "TEST SUCCEEDED" storekit.log

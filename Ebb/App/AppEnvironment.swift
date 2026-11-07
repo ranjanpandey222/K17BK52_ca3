@@ -18,14 +18,22 @@ enum AppEnvironment {
         return defaults
     }
 
+    /// True if the on-disk database couldn't be opened and the app is running
+    /// with temporary storage. The app warns the user in this case.
+    @MainActor static private(set) var isUsingTemporaryStorage = false
+
     @MainActor
     static func makeContainer() -> ModelContainer {
         let schema = Schema([DayLog.self, Treatment.self, DoseLog.self])
+        // SwiftData doesn't always create Application Support on first launch.
+        try? FileManager.default.createDirectory(at: .applicationSupportDirectory, withIntermediateDirectories: true)
         let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: isUITesting)
         if let container = try? ModelContainer(for: schema, configurations: [configuration]) {
             return container
         }
-        // Last resort so the app still opens instead of crashing. Data won't persist in this state.
+        // Last resort so the app still opens instead of crashing. Data won't persist
+        // in this state, so the user is warned (see RootView).
+        isUsingTemporaryStorage = true
         let fallback = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
         do {
             return try ModelContainer(for: schema, configurations: [fallback])

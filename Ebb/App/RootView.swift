@@ -6,6 +6,7 @@ struct RootView: View {
     @EnvironmentObject private var store: StoreService
     @EnvironmentObject private var appLock: AppLockService
     @Environment(\.scenePhase) private var scenePhase
+    @State private var showStorageWarning = AppEnvironment.isUsingTemporaryStorage
 
     var body: some View {
         ZStack {
@@ -30,6 +31,11 @@ struct RootView: View {
         }
         .onAppear {
             if profile.appLockEnabled { appLock.lock() }
+        }
+        .alert("Ebb couldn't open its storage", isPresented: $showStorageWarning) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Anything you enter right now won't be saved. Please close and reopen Ebb. If this keeps happening, restart your iPhone or contact support.")
         }
         .onChange(of: scenePhase) { _, phase in
             switch phase {

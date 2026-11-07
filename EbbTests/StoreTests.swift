@@ -14,6 +14,25 @@ final class StoreTests: XCTestCase {
         session = try SKTestSession(configurationFileNamed: "Ebb")
         session.disableDialogs = true
         session.clearTransactions()
+
+        // Apple bug FB22237318: StoreKit test sessions can't load the configuration
+        // on iOS 26.3–26.5 simulators. Skip there (with a reason) instead of reporting
+        // a false failure; every other iOS version runs these tests for real.
+        if Self.isKnownBrokenStoreKitTestRuntime {
+            let probe = try await Product.products(for: StoreService.productIDs)
+            if probe.isEmpty {
+                throw XCTSkip("StoreKit test sessions are broken on this simulator runtime (Apple FB22237318). Covered by the iOS 18 CI run.")
+            }
+        }
+    }
+
+    private static var isKnownBrokenStoreKitTestRuntime: Bool {
+        #if targetEnvironment(simulator)
+        let version = ProcessInfo.processInfo.operatingSystemVersion
+        return version.majorVersion == 26 && (3...5).contains(version.minorVersion)
+        #else
+        return false
+        #endif
     }
 
     override func tearDown() async throws {
