@@ -109,7 +109,7 @@ struct TodayView: View {
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 6)
                                 .foregroundStyle(severity >= 2 ? .white : Theme.textPrimary)
-                                .background(Theme.severityColor(severity), in: Capsule())
+                                .background(severity >= 3 ? Color(light: 0x553A82, dark: 0x9D7FD1) : (severity == 2 ? Theme.accent : Theme.severityColor(1)), in: Capsule())
                         }
                     }
                 }
