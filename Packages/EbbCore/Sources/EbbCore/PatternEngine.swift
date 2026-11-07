@@ -172,8 +172,10 @@ public struct PatternEngine: Sendable {
 
         var result: [Insight] = []
 
-        for comparison in treatments.map({ treatmentComparison(for: $0, records: records, today: today) }) {
-            if let insight = treatmentInsight(comparison) { result.append(insight) }
+        for treatment in treatments {
+            let comparison = treatmentComparison(for: treatment, records: records, today: today)
+            let others = overlappingTreatments(for: treatment, in: treatments)
+            if let insight = treatmentInsight(comparison, overlapping: others) { result.append(insight) }
         }
 
         if let trend = trend(records: records, today: today), let insight = trendInsight(trend) {
@@ -348,7 +350,22 @@ public struct PatternEngine: Sendable {
         )
     }
 
-    private func treatmentInsight(_ comparison: TreatmentComparison) -> Insight? {
+    /// Other treatments that started or stopped inside this treatment's
+    /// before/after comparison window. Their effect can't be separated.
+    public func overlappingTreatments(for treatment: TreatmentPeriod, in all: [TreatmentPeriod]) -> [TreatmentPeriod] {
+        let start = calendar.startOfDay(for: treatment.start)
+        let windowStart = calendar.day(-treatmentWindowDays, from: start)
+        let windowEnd = calendar.day(treatmentSettleDays + treatmentWindowDays, from: start)
+        return all.filter { other in
+            guard other.id != treatment.id else { return false }
+            let otherStart = calendar.startOfDay(for: other.start)
+            if otherStart > windowStart && otherStart < windowEnd { return true }
+            if let otherEnd = other.end.map({ calendar.startOfDay(for: $0) }), otherEnd > windowStart && otherEnd < windowEnd { return true }
+            return false
+        }
+    }
+
+    private func treatmentInsight(_ comparison: TreatmentComparison, overlapping: [TreatmentPeriod] = []) -> Insight? {
         guard let change = comparison.relativeChange, abs(change) >= Self.meaningfulScoreChange else { return nil }
         let name = comparison.treatment.name
         let title = change < 0
@@ -362,7 +379,12 @@ public struct PatternEngine: Sendable {
         if let before = comparison.hotFlashesPerDayBefore, let after = comparison.hotFlashesPerDayAfter {
             detail += " Hot flashes per day: \(Phrasing.oneDecimal(before)) → \(Phrasing.oneDecimal(after))."
         }
-        detail += " Other things may have changed too, so talk it through with your clinician."
+        if !overlapping.isEmpty {
+            let names = overlapping.map(\.name).joined(separator: " and ")
+            detail += " You also started or stopped \(names) around this time, so the change can't be put down to \(name) alone."
+        } else {
+            detail += " Other things may have changed too, so talk it through with your clinician."
+        }
 
         return Insight(
             id: "treatment-\(comparison.treatment.id)",

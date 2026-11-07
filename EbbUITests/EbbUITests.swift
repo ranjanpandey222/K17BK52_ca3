@@ -1,4 +1,5 @@
 import XCTest
+import StoreKitTest
 
 /// End-to-end checks that run the real app in the iOS Simulator, plus
 /// screenshots of every main screen (saved as test attachments).
@@ -9,7 +10,12 @@ final class EbbUITests: XCTestCase {
 
     // MARK: - New user: onboarding → paywall → first check-in
 
-    func testOnboardingPaywallAndFirstCheckIn() {
+    func testOnboardingPaywallAndFirstCheckIn() throws {
+        // Local StoreKit test environment: real paywall, no real money.
+        let storeSession = try SKTestSession(configurationFileNamed: "Ebb")
+        storeSession.disableDialogs = true
+        storeSession.clearTransactions()
+
         let app = XCUIApplication()
         app.launchArguments = ["-uiTesting"]
         app.launch()
@@ -49,12 +55,15 @@ final class EbbUITests: XCTestCase {
         attach("04-plan")
         tapButton(app, "Continue")
 
-        // Paywall (debug builds have a skip button)
-        let skip = app.buttons["Skip (debug)"]
-        XCTAssertTrue(skip.waitForExistence(timeout: 15), "Paywall did not appear")
-        sleep(3)
+        // Paywall: start the free trial through Apple's subscription view.
+        XCTAssertTrue(app.buttons["Skip (debug)"].waitForExistence(timeout: 15), "Paywall did not appear")
+        let trialButton = app.buttons.matching(NSPredicate(
+            format: "label CONTAINS[c] 'free' OR label CONTAINS[c] 'subscribe' OR label CONTAINS[c] 'trial'"
+        )).firstMatch
+        XCTAssertTrue(trialButton.waitForExistence(timeout: 20), "Subscription products did not load on the paywall")
+        sleep(2)
         attach("05-paywall")
-        skip.tap()
+        trialButton.tap()
 
         // Today → first check-in
         tapButton(app, "Check in", timeout: 10)
@@ -144,6 +153,7 @@ final class EbbUITests: XCTestCase {
     }
 
     private func attach(_ name: String) {
+        Thread.sleep(forTimeInterval: 0.8)
         let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
         attachment.name = name
         attachment.lifetime = .keepAlways

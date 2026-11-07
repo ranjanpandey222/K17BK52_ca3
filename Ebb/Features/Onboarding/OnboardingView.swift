@@ -26,6 +26,7 @@ struct OnboardingView: View {
     @State private var reminderOn = true
     @State private var reminderTime = Calendar.current.date(bySettingHour: 20, minute: 0, second: 0, of: .now) ?? .now
     @State private var acceptedDisclaimer = false
+    @State private var movingForward = true
 
     private var steps: [Step] {
         Step.allCases.filter { $0 != .health || health.isAvailable }
@@ -58,6 +59,11 @@ struct OnboardingView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             .scrollDismissesKeyboard(.interactively)
+            .id(step)
+            .transition(.asymmetric(
+                insertion: .move(edge: movingForward ? .trailing : .leading),
+                removal: .move(edge: movingForward ? .leading : .trailing)
+            ))
 
             Button(primaryTitle) { advance() }
                 .buttonStyle(PrimaryButtonStyle())
@@ -73,7 +79,8 @@ struct OnboardingView: View {
             }
         }
         .background(Theme.background.ignoresSafeArea())
-        .animation(.easeInOut(duration: 0.25), value: step)
+        .clipped()
+        .animation(.easeInOut(duration: 0.3), value: step)
     }
 
     // MARK: - Step content
@@ -333,11 +340,13 @@ struct OnboardingView: View {
 
     private func moveForward() {
         guard let index = steps.firstIndex(of: step), index + 1 < steps.count else { return }
+        movingForward = true
         step = steps[index + 1]
     }
 
     private func goBack() {
         guard let index = steps.firstIndex(of: step), index > 0 else { return }
+        movingForward = false
         step = steps[index - 1]
     }
 

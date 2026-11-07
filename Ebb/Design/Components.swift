@@ -139,7 +139,7 @@ struct SeveritySelector: View {
                         .padding(.vertical, 9)
                         .foregroundStyle(selected ? (severity == .none ? Theme.textPrimary : .white) : Theme.textSecondary)
                         .background(
-                            selected ? Theme.severityColor(severity.rawValue == 0 ? 0 : max(severity.rawValue, 2)) : Theme.background,
+                            selected ? selectedColor(severity) : Theme.background,
                             in: RoundedRectangle(cornerRadius: 10, style: .continuous)
                         )
                         .overlay(
@@ -151,6 +151,16 @@ struct SeveritySelector: View {
                 .accessibilityLabel(severity.title)
                 .accessibilityAddTraits(selected ? [.isSelected] : [])
             }
+        }
+        .animation(nil, value: value)
+    }
+
+    /// Solid colors with readable white text; severe is the darkest.
+    private func selectedColor(_ severity: Severity) -> Color {
+        switch severity {
+        case .none: return Theme.severityColor(0)
+        case .severe: return Color(light: 0x553A82, dark: 0x9D7FD1)
+        default: return Theme.accent
         }
     }
 }

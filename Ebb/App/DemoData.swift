@@ -24,7 +24,7 @@ enum DemoData {
             newPatch.reminderWeekdays = [1, 4]
             context.insert(newPatch)
             patch = newPatch
-            let magnesium = Treatment(name: "Magnesium", kind: .supplement, dose: "200 mg", frequency: .daily, startDate: calendar.day(-60, from: today))
+            let magnesium = Treatment(name: "Magnesium", kind: .supplement, dose: "200 mg", frequency: .daily, startDate: calendar.day(-200, from: today))
             context.insert(magnesium)
         }
 

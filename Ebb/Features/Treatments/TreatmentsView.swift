@@ -87,6 +87,7 @@ struct TreatmentDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @Query(sort: \DayLog.day) private var logs: [DayLog]
+    @Query private var allTreatments: [Treatment]
 
     @State private var showEdit = false
     @State private var showChangeDose = false
@@ -166,6 +167,11 @@ struct TreatmentDetailView: View {
                 if let before = comparison.hotFlashesPerDayBefore, let after = comparison.hotFlashesPerDayAfter {
                     Text("Hot flashes per counted day: \(Phrasing.oneDecimal(before)) → \(Phrasing.oneDecimal(after))")
                         .font(.subheadline).foregroundStyle(Theme.textSecondary)
+                }
+                let overlapping = PatternEngine().overlappingTreatments(for: treatment.period, in: allTreatments.map(\.period))
+                if !overlapping.isEmpty {
+                    Label("You also started or stopped \(overlapping.map(\.name).joined(separator: " and ")) around this time, so the change can't be put down to this treatment alone.", systemImage: "info.circle")
+                        .font(.caption).foregroundStyle(Theme.warning)
                 }
                 Text("Other things can change at the same time, so use this as a conversation starter with your clinician.")
                     .font(.caption).foregroundStyle(Theme.textSecondary)

@@ -158,6 +158,23 @@ final class PatternEngineTests: XCTestCase {
         XCTAssertTrue(insight!.detail.contains("Hot flashes per day: 8 → 2"))
     }
 
+    func testOverlappingTreatmentsAreFlagged() {
+        let start = -50
+        var records: [DayRecord] = []
+        for i in (start - 28)..<start { records.append(TestSupport.record(i, [SymptomCatalog.nightSweats: 3])) }
+        for i in (start + 14)..<(start + 42) { records.append(TestSupport.record(i, [SymptomCatalog.nightSweats: 1])) }
+        let hrt = treatment(startOffset: start)
+        let supplement = TreatmentPeriod(id: "t2", name: "Magnesium", isHormonal: false, start: TestSupport.day(start + 5), end: nil)
+        let unrelated = TreatmentPeriod(id: "t3", name: "Old pill", isHormonal: false, start: TestSupport.day(-300), end: TestSupport.day(-200))
+
+        XCTAssertEqual(engine.overlappingTreatments(for: hrt, in: [hrt, supplement, unrelated]).map(\.id), ["t2"])
+
+        let insight = engine.insights(records: records, treatments: [hrt, supplement, unrelated], today: TestSupport.today)
+            .first { $0.id == "treatment-t1" }
+        XCTAssertNotNil(insight)
+        XCTAssertTrue(insight!.detail.contains("You also started or stopped Magnesium"), insight!.detail)
+    }
+
     func testTreatmentTooEarly() {
         var records: [DayRecord] = []
         for i in -40..<(-5) { records.append(TestSupport.record(i, [hot: 2])) }

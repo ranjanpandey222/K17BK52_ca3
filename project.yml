@@ -19,9 +19,6 @@ packages:
   EbbCore:
     path: Packages/EbbCore
 
-fileGroups:
-  - StoreKit
-
 targets:
   Ebb:
     type: application
@@ -76,6 +73,8 @@ targets:
     deploymentTarget: "17.0"
     sources:
       - path: EbbUITests
+      - path: StoreKit/Ebb.storekit
+        buildPhase: resources
     dependencies:
       - target: Ebb
     settings:
