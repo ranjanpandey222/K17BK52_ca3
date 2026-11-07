@@ -33,7 +33,7 @@ Create the app (My Apps → +), then **Monetization → Subscriptions**:
 - [ ] Category: **Health & Fitness** (secondary: Medical is *not* recommended; it invites stricter review)
 - [ ] Age rating questionnaire: answer honestly. "Medical/Treatment Information: Infrequent/Mild" fits the Learn section.
 - [ ] **App Privacy** ("nutrition label"): select **Data Not Collected**. This is accurate: everything stays on the device and Ebb has no analytics or ad SDKs. (Purchases are handled by Apple and don't count.) If you ever add analytics, update this.
-- [ ] Screenshots: 6.9" iPhone (1320 × 2868) and 6.5" (1284 × 2778). Take them in the Simulator (⌘ + S) on iPhone 16 Pro Max / iPhone 11 Pro Max. Suggested set: Today · Check-in · Insights · Treatment "Is it working?" · Doctor report · Privacy promise.
+- [ ] Screenshots: a ready-made 6.9" set (1320 × 2868, the size Apple requires) is in [`docs/app-store-screenshots/`](app-store-screenshots/), produced automatically from the real app with sample data. Upload them as-is, or add captions in a free tool (e.g. Canva) for higher conversion: "Find your triggers", "See if your HRT is working", "Walk in with a doctor-ready report", "Private by design". Apple scales 6.9" screenshots down for smaller iPhones.
 
 ## 6. Test on a real iPhone (TestFlight)
 - [ ] In Xcode: select **Any iOS Device** → menu **Product → Archive** → **Distribute App** → **TestFlight & App Store**
