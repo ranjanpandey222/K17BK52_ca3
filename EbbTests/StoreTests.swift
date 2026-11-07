@@ -49,7 +49,8 @@ final class StoreTests: XCTestCase {
         #endif
         XCTAssertFalse(store.isPremium)
 
-        let yearly = try XCTUnwrap(try await Product.products(for: [StoreService.yearlyID]).first)
+        let yearlyProducts = try await Product.products(for: [StoreService.yearlyID])
+        let yearly = try XCTUnwrap(yearlyProducts.first)
         let result = try await yearly.purchase()
         guard case .success(let verification) = result, case .verified(let transaction) = verification else {
             return XCTFail("Purchase did not succeed: \(result)")
@@ -63,7 +64,8 @@ final class StoreTests: XCTestCase {
 
     func testExpiredSubscriptionLocksAgain() async throws {
         let store = StoreService()
-        let monthly = try XCTUnwrap(try await Product.products(for: [StoreService.monthlyID]).first)
+        let monthlyProducts = try await Product.products(for: [StoreService.monthlyID])
+        let monthly = try XCTUnwrap(monthlyProducts.first)
         let result = try await monthly.purchase()
         guard case .success(let verification) = result, case .verified(let transaction) = verification else {
             return XCTFail("Purchase did not succeed")
