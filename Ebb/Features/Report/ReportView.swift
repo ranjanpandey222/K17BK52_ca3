@@ -131,8 +131,9 @@ struct ReportView: View {
     private func createPDF(_ data: ReportData) {
         isRendering = true
         let name = includeName ? profile.firstName : ""
-        // Let the button show its spinner before the (fast) render.
-        DispatchQueue.main.async {
+        Task { @MainActor in
+            // Let the button show its spinner before the (fast) render.
+            await Task.yield()
             pdfURL = ReportPDFRenderer.render(report: data, name: name)
             isRendering = false
         }
