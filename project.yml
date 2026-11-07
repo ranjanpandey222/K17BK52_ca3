@@ -21,7 +21,6 @@ packages:
 
 fileGroups:
   - StoreKit
-  - docs
 
 targets:
   Ebb:
