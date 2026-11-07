@@ -21,7 +21,7 @@ final class StoreTests: XCTestCase {
         if Self.isKnownBrokenStoreKitTestRuntime {
             let probe = try await Product.products(for: StoreService.productIDs)
             if probe.isEmpty {
-                throw XCTSkip("StoreKit test sessions are broken on this simulator runtime (Apple FB22237318). Covered by the iOS 18 CI run.")
+                throw XCTSkip("StoreKit test sessions are broken on this simulator runtime (Apple FB22237318). Covered by the CI run on an unaffected simulator.")
             }
         }
     }

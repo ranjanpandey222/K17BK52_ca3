@@ -131,7 +131,7 @@ jobs:
           path: ui.log
 
   storekit-tests:
-    name: Subscription tests (iOS 18 simulator)
+    name: Subscription tests (simulator without Apple's StoreKit bug)
     runs-on: macos-latest
     needs: build-app
     steps:
@@ -140,20 +140,22 @@ jobs:
         run: brew install xcodegen
       - name: Generate Xcode project
         run: xcodegen generate
-      - name: Pick an iOS 18 simulator
+      - name: Pick a simulator not affected by Apple FB22237318 (iOS 26.3-26.5)
         id: sim
         run: |
           xcrun simctl list runtimes
           UDID=$(xcrun simctl list devices available -j | python3 -c '
           import sys, json
           devices = json.load(sys.stdin)["devices"]
-          for runtime in sorted([r for r in devices if "iOS-18" in r], reverse=True):
+          broken = ("iOS-26-3", "iOS-26-4", "iOS-26-5")
+          usable = [r for r in devices if "iOS" in r and not r.endswith(broken)]
+          for runtime in sorted(usable, reverse=True):
               for d in devices[runtime]:
                   if d["name"].startswith("iPhone"):
                       print(d["udid"]); sys.exit()
           ')
           echo "udid=$UDID" >> "$GITHUB_OUTPUT"
-          if [ -z "$UDID" ]; then echo "::warning::No iOS 18 simulator on this runner; subscription tests only ran on the default simulator."; fi
+          if [ -z "$UDID" ]; then echo "::warning::No unaffected iOS simulator on this runner; subscription tests were skipped (Apple FB22237318)."; fi
       - name: Run subscription tests
         if: steps.sim.outputs.udid != ''
         run: |
